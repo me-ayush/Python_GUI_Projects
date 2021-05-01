@@ -11,11 +11,55 @@ root = Tk()
 root.title("Rubix Cube Solver")
 root.state("zoomed")
 root.configure(bg='gray50')
-root.iconbitmap("icon.ico")
+root.iconbitmap("main.ico")
+dim = (640, 480)
+url = ''
+cap = cv2.VideoCapture()
+hsv_val = StringVar()
 
+e1 = Entry()
+e2 = Entry()
+e3 = Entry()
+e4 = Entry()
+e5 = Entry()
+
+check_state = []
+solution = []
+solved = False
+
+sol = True
+
+i_len = 0
+i_itr = 0
+operation = []
+# For Color Detection
 val = {'r_h': 160, 'r_s': 170, 'o_h_min': 3, 'o_h_max': 10, 'y_h_min': 10, 'y_h_max': 25, 'g_h_min': 60, 'g_h_max': 90,
     'g_s': 100, 'g_v': 180, 'b_h_min': 25, 'b_h_max': 130, 'b_s': 70, 'w_h': 100, 'w_s': 10, 'w_v': 200, }
+val_bac = val.copy()
+val2 = ['o_h_min', 'o_h_max', 'y_h_min', 'y_h_max', 'g_h_min', 'g_h_max', 'g_s', 'g_v', 'r_h', 'r_s', 'w_h', 'w_s', 'w_v', 'b_s', 'b_h_min', 'b_h_max']
+var = []
+for i in range(0, len(val2)):
+    var.append(IntVar())
+    a = val2[i]
+    var[i].set(val[a])
 
+def refresh_val():
+    for i in range(0, len(val2)):
+        a = val2[i]
+        var[i].set(val[a])
+
+def default():
+    global val, val_bac
+    val = val_bac
+    refresh_val()
+
+def update():
+    for i in range(0, len(val2)):
+        a = val2[i]
+        val[a] = var[i].get()
+    refresh_val()
+# END
+# For Stickers In Preview
 state = {'up': ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', ],
     'right': ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', ],
     'front': ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', ],
@@ -25,9 +69,11 @@ state = {'up': ['white', 'white', 'white', 'white', 'white', 'white', 'white', '
 
 sign_conv = {'green': 'F', 'white': 'U', 'blue': 'B', 'red': 'R', 'orange': 'L', 'yellow': 'D'}
 
+# Colours Show In Input Stickers
 color = {'red': (0, 0, 255), 'orange': (0, 140, 255), 'blue': (255, 0, 0), 'green': (0, 255, 0),
     'white': (255, 255, 255), 'yellow': (0, 255, 255)}
 
+# x, y cordinates to place the cube boxes
 stickers = {'main': [[200, 120], [300, 120], [400, 120], [200, 220], [300, 220], [400, 220], [200, 320], [300, 320],
     [400, 320]], 'current': [[20, 20], [54, 20], [88, 20], [20, 54], [54, 54], [88, 54], [20, 88], [54, 88], [88, 88]],
     'preview': [[20, 130], [54, 130], [88, 130], [20, 164], [54, 164], [88, 164], [20, 198], [54, 198], [88, 198]],
@@ -41,7 +87,6 @@ stickers = {'main': [[200, 120], [300, 120], [400, 120], [200, 220], [300, 220],
         [276, 522]],
     'back': [[464, 280], [508, 280], [552, 280], [464, 324], [508, 324], [552, 324], [464, 368], [508, 368],
         [552, 368]], }
-
 sidy = ['left', 'right', 'up', 'down', 'front', 'back']
 for side in sidy:
     for i in range(len(stickers[side])):
@@ -50,67 +95,18 @@ for side in sidy:
                 stickers[side][i][j] = stickers[side][i][j] - 30
             else:
                 stickers[side][i][j] = stickers[side][i][j] - 100
+# END
 
+# Writing Symbols On Preview
 font = cv2.FONT_HERSHEY_SIMPLEX
 textPoints = {'up': [['U', 242, 202], ['W', (255, 255, 255), 260, 208]],
-    'right': [['R', 380, 354], ['R', (0, 0, 255), 398, 360]], 'front': [['F', 242, 354], ['G', (0, 255, 0), 260, 360]],
+    'right': [['R', 380, 354], ['R', (0, 0, 255), 398, 360]],
+    'front': [['F', 242, 354], ['G', (0, 255, 0), 260, 360]],
     'down': [['D', 242, 508], ['Y', (0, 255, 255), 260, 514]],
     'left': [['L', 104, 354], ['O', (0, 169, 255), 122, 360]],
     'back': [['B', 518, 354], ['B', (255, 0, 0), 536, 360]], }
 
-var1 = IntVar(value = val['o_h_min'])
-var2 = IntVar(value = val['o_h_max'])
-var3 = IntVar(value = val['y_h_min'])
-var4 = IntVar(value = val['y_h_max'])
-var5 = IntVar(value = val['g_h_min'])
-var6 = IntVar(value = val['g_h_max'])
-var7 = IntVar(value = val['g_s'])
-var8 = IntVar(value = val['g_v'])
-var9 = IntVar(value = val['r_h'])
-var10 = IntVar(value = val['r_s'])
-var11 = IntVar(value = val['w_h'])
-var12 = IntVar(value = val['w_s'])
-var13 = IntVar(value = val['w_v'])
-var14 = IntVar(value = val['b_s'])
-var15 = IntVar(value = val['b_h_min'])
-var16 = IntVar(value = val['b_h_max'])
-
-def default():
-    val['o_h_min'] = 3
-    val['o_h_max'] = 10
-    val['y_h_min'] = 10
-    val['y_h_max'] = 25
-    val['g_h_min'] = 60
-    val['g_h_max'] = 90
-    val['g_s'] = 100
-    val['g_v'] = 180
-    val['r_h'] = 160
-    val['r_s'] = 170
-    val['w_h'] = 100
-    val['w_s'] = 10
-    val['w_v'] = 200
-    val['b_s'] = 70
-    val['b_h_min'] = 25
-    val['b_h_max'] = 130
-
-def update():
-    val['o_h_min'] = var1.get()
-    val['o_h_max'] = var2.get()
-    val['y_h_min'] = var3.get()
-    val['y_h_max'] = var4.get()
-    val['g_h_min'] = var5.get()
-    val['g_h_max'] = var6.get()
-    val['g_s'] = var7.get()
-    val['g_v'] = var8.get()
-    val['r_h'] = var9.get()
-    val['r_s'] = var10.get()
-    val['w_h'] = var11.get()
-    val['w_s'] = var12.get()
-    val['w_v'] = var13.get()
-    val['b_s'] = var14.get()
-    val['b_h_min'] = var15.get()
-    val['b_h_max'] = var16.get()
-
+# Function To Calibrate The Colours
 def calibrate(url):
     window = Toplevel()
     window.title("Set Cube Colours")
@@ -118,24 +114,6 @@ def calibrate(url):
     window.geometry("900x600")
     window.minsize(800, 600)
     window.maxsize(1366, 768)
-    hsv_val = StringVar()
-
-    def color_detect2(h, s, v):
-        a = f"Current Fetching Values : H = {h} S = {s} V = {v}"
-        hsv_val.set(a)
-        if h > val['r_h'] and s > val['r_s']:
-            return 'red'
-        elif val['o_h_max'] > h >= val['o_h_min']:
-            return 'orange'
-        elif val['y_h_max'] >= h > val['y_h_min']:
-            return 'yellow'
-        elif val['g_h_min'] <= h <= val['g_h_max'] and s > val['g_s'] and v < val['g_v']:
-            return 'green'
-        elif val['b_h_min'] <= h <= val['b_h_max'] and s > val['b_s']:
-            return 'blue'
-        elif h <= val['w_h'] and s < val['w_s'] and v < val['w_v']:
-            return 'white'
-        return 'white'
 
     f0_c = Frame(window, bg = "black", borderwidth = 5, relief = SUNKEN)
     Label(f0_c, text = "Set Cube Colors", font = ("3Dumb", 22, "bold"), bg = "black", fg = "orange").pack()
@@ -148,69 +126,64 @@ def calibrate(url):
 
     f2_c = Frame(window, bg = "orange", padx = 5)
     Label(f2_c, text = 'Min H For Orange', bg = 'orange', font = ('', 15)).pack(side = 'left', padx = 10)
-    Entry(f2_c, textvariable = var1, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f2_c, textvariable = var[0], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     Label(f2_c, text = 'Max H For Orange', bg = 'orange', font = ('', 15)).pack(side = 'left', padx = 30)
-    Entry(f2_c, textvariable = var2, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f2_c, textvariable = var[1], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     f2_c.place(x = 10, y = 80, width = 650)
 
     f3_c = Frame(window, bg = "yellow", padx = 5)
     Label(f3_c, text = 'Min H For Yellow ', bg = 'yellow', font = ('', 15)).pack(side = 'left', padx = 10)
-    Entry(f3_c, textvariable = var3, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f3_c, textvariable = var[2], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     Label(f3_c, text = 'Max H For Yellow ', bg = 'yellow', font = ('', 15)).pack(side = 'left', padx = 30)
-    Entry(f3_c, textvariable = var4, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f3_c, textvariable = var[3], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     f3_c.place(x = 10, y = 140, width = 650)
 
     f4_c = Frame(window, bg = "lightgreen", padx = 5)
     Label(f4_c, text = 'Min H For Green ', bg = "lightgreen", font = ('', 15)).pack(side = 'left', padx = 10)
-    Entry(f4_c, textvariable = var5, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f4_c, textvariable = var[4], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     Label(f4_c, text = 'Max H For Green  ', bg = "lightgreen", font = ('', 15)).pack(side = 'left', padx = 30)
-    Entry(f4_c, textvariable = var6, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f4_c, textvariable = var[5], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     f4_c.place(x = 10, y = 200, width = 650)
 
     f5_c = Frame(window, bg = "lightgreen", padx = 5)
     Label(f5_c, text = 'S For Green       ', bg = "lightgreen", font = ('', 15)).pack(side = 'left', padx = 10)
-    Entry(f5_c, textvariable = var7, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f5_c, textvariable = var[6], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     Label(f5_c, text = 'V For Green         ', bg = "lightgreen", font = ('', 15)).pack(side = 'left', padx = 30)
-    Entry(f5_c, textvariable = var8, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f5_c, textvariable = var[7], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     f5_c.place(x = 10, y = 260, width = 650)
 
     f6_c = Frame(window, bg = "tomato", padx = 5)
     Label(f6_c, text = 'H For Red          ', bg = "tomato", font = ('', 15)).pack(side = 'left', padx = 10)
-    Entry(f6_c, textvariable = var9, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f6_c, textvariable = var[8], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     Label(f6_c, text = 'S For Red            ', bg = "tomato", font = ('', 15)).pack(side = 'left', padx = 30)
-    Entry(f6_c, textvariable = var10, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f6_c, textvariable = var[9], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     f6_c.place(x = 10, y = 320, width = 650)
 
     f7_c = Frame(window, bg = "antiqueWhite2", padx = 5)
     Label(f7_c, text = 'H For White        ', bg = "antiqueWhite2", font = ('', 15)).pack(side = 'left', padx = 10)
-    Entry(f7_c, textvariable = var11, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f7_c, textvariable = var[10], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     Label(f7_c, text = 'S For White         ', bg = "antiqueWhite2", font = ('', 15)).pack(side = 'left', padx = 30)
-    Entry(f7_c, textvariable = var12, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f7_c, textvariable = var[11], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     f7_c.place(x = 10, y = 380, width = 650)
 
     f8_c = Frame(window, bg = "antiqueWhite2", padx = 5)
     Label(f8_c, text = 'V For White        ', bg = "antiqueWhite2", font = ('', 15)).pack(side = 'left', padx = 10)
-    Entry(f8_c, textvariable = var13, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f8_c, textvariable = var[12], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     f8_c.place(x = 10, y = 440, width = 320)
     f9_c = Frame(window, bg = "skyblue", padx = 5)
     Label(f9_c, text = 'S For Blue         ', bg = "skyblue", font = ('', 15)).pack(side = 'left', padx = 30)
-    Entry(f9_c, textvariable = var14, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f9_c, textvariable = var[13], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     f9_c.place(x = 340, y = 440, width = 320)
 
     f10_c = Frame(window, bg = "skyblue", padx = 5)
     Label(f10_c, text = 'Min H For Blue   ', bg = "skyblue", font = ('', 15)).pack(side = 'left', padx = 10)
-    Entry(f10_c, textvariable = var15, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f10_c, textvariable = var[14], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     Label(f10_c, text = 'Max H For Blue  ', bg = "skyblue", font = ('', 15)).pack(side = 'left', padx = 30)
-    Entry(f10_c, textvariable = var16, width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
+    Entry(f10_c, textvariable = var[15], width = 5).pack(pady = 5, padx = 5, side = 'left', ipady = 2)
     f10_c.place(x = 10, y = 500, width = 650)
-
-    def exit_c():
-        cap.release()
-        window.destroy()
 
     Button(window, text = 'Default', font = ('', 15), command = default).place(x = 170, y = 540, height = 50, width = 100)
     Button(window, text = 'Update', font = ('', 15), command = update).place(x = 290, y = 540, height = 50, width = 100)
-    Button(window, text = 'Exit', font = ('', 15), command = exit_c).place(x = 410, y = 540, height = 50, width = 100)
     Label(window, textvariable = hsv_val, font = ('', 15)).place(x = 10, y = 600)
     cap.open(url)
     while True:
@@ -223,7 +196,7 @@ def calibrate(url):
         for i in range(9):
             hsv.append(frame[stickers['main'][i][1] + 10][stickers['main'][i][0] + 10])
         for x, y in stickers['current']:
-            color_name = color_detect2(hsv[a][0], hsv[a][1], hsv[a][2])
+            color_name = color_detect(hsv[a][0], hsv[a][1], hsv[a][2])
             cv2.rectangle(img, (x, y), (x + 30, y + 30), color[color_name], -1)
             a += 1
 
@@ -232,7 +205,8 @@ def calibrate(url):
         input_frame_c['image'] = img_out
         window.update()
     window.mainloop()
-
+# END
+# HELP MENU
 def open_help():
     help = Toplevel()
     help.title("Help")
@@ -251,12 +225,8 @@ def open_help():
     Scroll.config(command=l1.yview)
     l1.pack(expand=True, fill=BOTH)
     help.mainloop()
+# END
 
-e1 =Entry()
-e2 =Entry()
-e3 =Entry()
-e4 =Entry()
-e5 =Entry()
 def refresh():
     global e1, e2, e3, e4, e5
     address.set("")
@@ -289,7 +259,6 @@ def refresh():
         e5.pack(pady=5, side="left")
 
 def check_host():
-    #  Checking For WebCam
     if ch.get() == "Webcam":
         try:
             cap.open(int(address.get()))
@@ -299,7 +268,6 @@ def check_host():
         except ValueError:
             tmsg.showerror("Error", "Please Enter A Valid WebCam ID")
             return 0
-    #  Checking For Streaming
     elif ch.get() == "Stream":
         host = True if os.system("ping -n 1 " + address.get()) is 0 else False  # Checking The IP return 1 is exist
         if address.get() == "":
@@ -332,14 +300,31 @@ def check_host():
     return 1
 
 def disconnect():
-    global e1, e2, e3, e4, e5
+    global e1, e2, e3, e4, e5, check_state, solution, solved, sol, i_len, i_itr, operation, state
+    check_state = []
+    solution = []
+    solved = False
+    sol = True
+    i_len = 0
+    i_itr = 0
+    operation = []
     e1['state'] = 'normal'
     e2['state'] = 'normal'
     e3['state'] = 'normal'
     e4['state'] = 'normal'
     e5['state'] = 'normal'
+    cv2.rectangle(preview, (670, 20), (750, 70), (0, 0, 0), -1)
+    a = ''
+    ans.set(a)
+    state = {'up': ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', ],
+        'right': ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', ],
+        'front': ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', ],
+        'down': ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', ],
+        'left': ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', ],
+        'back': ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', ]}
     cap.release()
     cv2.destroyAllWindows()
+
 def connect():
     global e1, e2, e3, e4, e5
     global url
@@ -373,10 +358,6 @@ def exit_win():
     if ans == YES:
         disconnect()
         root.destroy()
-
-check_state = []
-solution = []
-solved = False
 
 def rotate(side):
     main = state[side]
@@ -445,7 +426,6 @@ def revrotate(side):
     main[0], main[1], main[2], main[3], main[4], main[5], main[6], main[7], main[8] = main[2], main[5], main[8], main[
         1], main[4], main[7], main[0], main[3], main[6]
 
-sol = True
 def solve(state):
     raw = ''
     for i in state:
@@ -477,6 +457,8 @@ def texton_preview_stickers(frame, stickers):
             cv2.putText(preview, sym, (x1, y1), font, 0.5, col, 1, cv2.LINE_AA)
 
 def color_detect(h, s, v):
+    a = f"Current Fetching Values : H = {h} S = {s} V = {v}"
+    hsv_val.set(a)
     if h > val['r_h'] and s > val['r_s']:
         return 'red'
     elif val['o_h_max'] > h >= val['o_h_min']:
@@ -490,10 +472,6 @@ def color_detect(h, s, v):
     elif h <= val['w_h'] and s < val['w_s'] and v < val['w_v']:
         return 'white'
     return 'white'
-
-i_len = 0
-i_itr = 0
-operation = []
 
 def prev_sol(i_val, opr):
     i = opr[i_val]
@@ -596,10 +574,6 @@ def display_input(cap):
                 prev_sol(i_itr, operation)
                 i_itr += 1
 
-        def end(event):
-            cap.release()
-            cv2.destroyAllWindows()
-
         root.bind("<l>", left)
         root.bind("<L>", left)
         root.bind("<u>", up)
@@ -614,7 +588,6 @@ def display_input(cap):
         root.bind("<B>", back)
         root.bind("<Return>", run)
         root.bind("<Right>", show_sol)
-        root.bind("<Escape>", end)
 
         img2 = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img2 = img2[0:500, 0:500]
@@ -624,11 +597,6 @@ def display_input(cap):
         img3 = ImageTk.PhotoImage(Image.fromarray(img3))
         pre_frame['image'] = img3
         root.update()
-
-dim = (640, 480)
-url = ''
-cap = cv2.VideoCapture()
-# cap.open(url)
 
 f0 = Frame(root, bg = "black", borderwidth = 5, relief = SUNKEN)
 Label(f0, text = "Rubix Cube Solver", font = ("Boneca de Pano", 30, "bold"), bg = "black", fg = "orange").pack()
@@ -651,11 +619,11 @@ f3.pack(anchor="w", fill="x")
 
 f4 = Frame(root, bg="palegreen", pady=5, padx=5)
 Button(f4, text="Connect", command=connect).pack(side="left", padx=5)
-Button(f4, text="Disconnect", command=disconnect).pack(side="left", padx=5)
+Button(f4, text="Reset", command=disconnect).pack(side="left", padx=5)
 Button(f4, text="Refresh", command=refresh).pack(side="left", padx=5)
 Button(f4, text="Help", command=open_help).pack(side="left", padx=5)
 Button(f4, text="Exit", command=exit_win).pack(side="left", padx=5)
-Button(f4, text="Calibrate", command=(lambda : calibrate(url))).pack(side="left", padx=5)
+Button(f4, text="Calibrate", command=(lambda: calibrate(url))).pack(side="left", padx=5)
 f4.pack(fill="x")
 
 ans = StringVar()
