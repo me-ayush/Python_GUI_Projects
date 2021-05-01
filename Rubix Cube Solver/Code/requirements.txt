@@ -1,0 +1,5 @@
+pyglet==1.5.16
+numpy==1.20.1
+kociemba==1.2.1
+opencv_python==4.4.0.46
+Pillow==8.2.0

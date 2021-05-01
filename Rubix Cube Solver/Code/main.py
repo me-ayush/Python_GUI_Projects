@@ -1,4 +1,3 @@
-# Code By AK
 from tkinter import *
 import cv2
 import numpy as np
@@ -7,12 +6,16 @@ import kociemba as Cube
 import tkinter.messagebox as tmsg
 import os
 import socket
+import pyglet
+pyglet.font.add_file('files\\font.ttf')
+pyglet.font.add_file('files\\font2.ttf')
 
 root = Tk()
 root.title("Rubix Cube Solver")
 root.state("zoomed")
 root.configure(bg='gray50')
-root.iconbitmap("main.ico")
+root.iconbitmap("files\\main.ico")
+root.maxsize(1366, 768)
 dim = (640, 480)
 url = ''
 cap = cv2.VideoCapture()
@@ -112,6 +115,7 @@ def calibrate(url):
     window = Toplevel()
     window.title("Set Cube Colours")
     window.state("zoomed")
+    window.iconbitmap("files\\main.ico")
     window.geometry("900x600")
     window.minsize(800, 600)
     window.maxsize(1366, 768)
@@ -211,12 +215,12 @@ def calibrate(url):
 def open_help():
     help = Toplevel()
     help.title("Help")
-    help.iconbitmap("icon.ico")
+    help.iconbitmap("files\\main.ico")
     help.geometry("500x500")
     help.minsize(500, 500)
     help.maxsize(1366, 768)
     t = ""
-    with open("help.txt") as f:
+    with open("files\\help.txt") as f:
         t = f.read()
     Scroll = Scrollbar(help)
     Scroll.pack(side=RIGHT, fill=Y)
@@ -620,7 +624,7 @@ f3.pack(anchor="w", fill="x")
 
 f4 = Frame(root, bg="palegreen", pady=5, padx=5)
 Button(f4, text="Connect", command=connect).pack(side="left", padx=5)
-Button(f4, text="Reset", command=disconnect).pack(side="left", padx=5)
+Button(f4, text="Disconnect", command=disconnect).pack(side="left", padx=5)
 Button(f4, text="Refresh", command=refresh).pack(side="left", padx=5)
 Button(f4, text="Help", command=open_help).pack(side="left", padx=5)
 Button(f4, text="Exit", command=exit_win).pack(side="left", padx=5)
